@@ -44,30 +44,6 @@ def asegurar_bucket():
                     print(f"No se pudo crear el bucket: {ex}. Intenta con otro nombre.")
             else:
                 print(f"Error de permisos o nombre inválido ({error_code}). Reintenta.")
-    while True:
-        nombre_bucket = input("\nIngresa el nombre del bucket de S3: ").strip()
-        
-        try:
-            # Intentamos verificar si el bucket existe
-            s3.head_bucket(Bucket=nombre_bucket)
-            print(f"El bucket '{nombre_bucket}' ya existe y tienes acceso.")
-            return nombre_bucket
-        except ClientError as e:
-            error_code = e.response['Error']['Code']
-            
-            # Si el error es 404, el bucket no existe, intentamos crearlo
-            if error_code == '404':
-                print(f"El bucket '{nombre_bucket}' no existe. Intentando crearlo...")
-                try:
-                    # Nota: Si usas una región distinta a us-east-1, 
-                    # podrías necesitar un CreateBucketConfiguration
-                    s3.create_bucket(Bucket=nombre_bucket)
-                    print(f"Bucket '{nombre_bucket}' creado exitosamente.")
-                    return nombre_bucket
-                except Exception as ex:
-                    print(f"No se pudo crear el bucket: {ex}. Intenta con otro nombre.")
-            else:
-                print(f"Error de permisos o nombre inválido ({error_code}). Reintenta.")
 
 def s3_operations():
     # 1. Asegurar que el bucket exista
