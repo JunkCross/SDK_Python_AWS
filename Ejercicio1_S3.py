@@ -1,29 +1,57 @@
+"""
+Ejercicio 1: Operaciones Básicas con Amazon S3 usando boto3
+
+Este script demuestra las operaciones fundamentales con buckets y objetos en S3:
+- Creación de buckets (si no existen)
+- Subida de archivos locales a S3
+- Listado de objetos en un bucket
+- Descarga de archivos desde S3
+
+Aprende a manejar errores comunes y configuraciones regionales.
+"""
+
 import boto3
 import os
 from botocore.exceptions import ClientError
 
-# Configuración del cliente
+# Configuración del cliente S3
+# Se utiliza el cliente de bajo nivel para operaciones directas
 s3 = boto3.client('s3')
 
 def obtener_ruta_local(nombre_archivo):
+    """
+    Obtiene la ruta completa de un archivo en el directorio del script.
+
+    Args:
+        nombre_archivo (str): Nombre del archivo
+
+    Returns:
+        str: Ruta completa del archivo
+    """
     # Obtiene la ruta del directorio donde se encuentra este script
     directorio_actual = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(directorio_actual, nombre_archivo)
 
 def asegurar_bucket():
+    """
+    Asegura que un bucket S3 exista, creándolo si es necesario.
+
+    Returns:
+        str: Nombre del bucket válido y accesible
+    """
     # Obtenemos la región configurada en tu cliente/entorno
     region_actual = s3.meta.region_name
-    
+
     while True:
         nombre_bucket = input("\nIngresa el nombre del bucket de S3: ").strip()
-        
+
         try:
             s3.head_bucket(Bucket=nombre_bucket)
             print(f"El bucket '{nombre_bucket}' ya existe y tienes acceso.")
             return nombre_bucket
         except ClientError as e:
             error_code = e.response['Error']['Code']
-            
+
             if error_code == '404':
                 print(f"El bucket '{nombre_bucket}' no existe en {region_actual}. Intentando crearlo...")
                 try:
@@ -46,13 +74,16 @@ def asegurar_bucket():
                 print(f"Error de permisos o nombre inválido ({error_code}). Reintenta.")
 
 def s3_operations():
+    """
+    Ejecuta las operaciones principales de S3: subir, listar y descargar archivos.
+    """
     # 1. Asegurar que el bucket exista
     bucket_name = asegurar_bucket()
-    
+
     # Definimos los nombres de los archivos
     nombre_archivo_subida = 'archivo_local.txt'
     ruta_completa_subida = obtener_ruta_local(nombre_archivo_subida)
-    
+
     # Crear un archivo de prueba si no existe en la ruta del script
     if not os.path.exists(ruta_completa_subida):
         with open(ruta_completa_subida, 'w') as f:
@@ -77,7 +108,7 @@ def s3_operations():
         ruta_descarga = obtener_ruta_local('descargado_de_s3.txt')
         s3.download_file(bucket_name, 'remoto.txt', ruta_descarga)
         print(f"\nDescarga exitosa. Archivo guardado en: {ruta_descarga}")
-        
+
     except ClientError as e:
         print(f"Ocurrió un error durante las operaciones de S3: {e}")
 
